@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import {
     Button,
@@ -5,20 +6,24 @@ import {
     Grid,
     Group,
     Paper,
+    Select,
     Stack,
     TextInput,
 } from "@mantine/core";
-import ProvinceConfigs from "./ProvinceConfigs";
-import useProvinceCreateViewModel from "./ProvinceCreate.vm";
+import CreateUpdateTitle from "@/components/CreateUpdateTitle";
+import DefaultPropertyPanel from "@/components/DefaultPropertyPanel";
+import RoleConfigs from "./RoleConfigs";
+import useRoleCreateViewModel from "./RoleCreate.vm";
 
-function ProvinceCreate() {
-    const { form, handleFormSubmit } = useProvinceCreateViewModel();
+function RoleCreate() {
+    const { form, handleFormSubmit, statusSelectList } =
+        useRoleCreateViewModel();
 
     return (
         <Stack sx={{ maxWidth: 800 }}>
             <CreateUpdateTitle
-                managerPath={ProvinceConfigs.managerPath}
-                title={ProvinceConfigs.createTitle}
+                managerPath={RoleConfigs.managerPath}
+                title={RoleConfigs.createTitle}
             />
 
             <DefaultPropertyPanel />
@@ -30,19 +35,24 @@ function ProvinceCreate() {
                             <Grid.Col xs={6}>
                                 <TextInput
                                     required
-                                    label={
-                                        ProvinceConfigs.properties.name.label
-                                    }
-                                    {...form.getInputProps("name")}
+                                    label={RoleConfigs.properties.code.label}
+                                    {...form.getInputProps("code")}
                                 />
                             </Grid.Col>
                             <Grid.Col xs={6}>
                                 <TextInput
                                     required
-                                    label={
-                                        ProvinceConfigs.properties.code.label
-                                    }
-                                    {...form.getInputProps("code")}
+                                    label={RoleConfigs.properties.name.label}
+                                    {...form.getInputProps("name")}
+                                />
+                            </Grid.Col>
+                            <Grid.Col xs={6}>
+                                <Select
+                                    required
+                                    label={RoleConfigs.properties.status.label}
+                                    placeholder="--"
+                                    data={statusSelectList}
+                                    {...form.getInputProps("status")}
                                 />
                             </Grid.Col>
                         </Grid>
@@ -62,4 +72,4 @@ function ProvinceCreate() {
     );
 }
 
-export default ProvinceCreate;
+export default RoleCreate;

@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+
+import { usePathname, useRouter } from "next/navigation";
+
 import Link from "next/link";
 import {
     Layout,
@@ -47,9 +49,12 @@ import useClientSiteStore from "@/stores/use-client-site-store";
 import FetchUtils from "@/utils/FetchUtils";
 import MiscUtils from "@/utils/MiscUtils";
 import NotifyUtils from "@/utils/NotifyUtils";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import CategoryMenu from "./CategoryMenu";
 import OsirisLogo from "../OsirisLogo";
+
+import useAdminAuthStore from "@/stores/use-admin-auth-store";
+import DefaultHeader from "./DefaultHeader";
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -229,6 +234,10 @@ function HeaderSection() {
     const router = useRouter();
     const headerRef = useRef<HTMLDivElement>(null);
     const [headerWidth, setHeaderWidth] = useState(0);
+    const pathName = usePathname();
+    if (pathName.startsWith("/admin")) {
+        return <DefaultHeader></DefaultHeader>;
+    }
 
     useEffect(() => {
         if (headerRef.current) {
@@ -334,7 +343,7 @@ function HeaderSection() {
                 background: "#fff",
                 padding: "0",
                 boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-                marginBottom: 24,
+                paddingBottom: 24,
                 height: "auto",
                 position: "sticky",
                 top: 0,
@@ -351,7 +360,13 @@ function HeaderSection() {
                     justify="space-between"
                     gutter={[16, 0]}
                 >
-                    <Col xs={24} sm={6} md={5} lg={4}>
+                    <Col
+                        xs={24}
+                        sm={6}
+                        md={5}
+                        lg={4}
+                        onClick={() => router.replace("/")}
+                    >
                         <OsirisLogo></OsirisLogo>
                     </Col>
                     <Col
@@ -538,58 +553,56 @@ function useNotificationEvents() {
     const eventSourceRef = useRef<EventSource | null>(null);
     const { pushNewNotification } = useClientSiteStore();
 
-    useQuery(
-        ["client-api", "notifications/init-events", "initNotificationEvents"],
-        () =>
+    const { data } = useQuery({
+        queryKey: [
+            "client-api",
+            "notifications/init-events",
+            "initNotificationEvents",
+        ],
+        queryFn: () =>
             FetchUtils.getWithToken(
                 ResourceURL.CLIENT_NOTIFICATION_INIT_EVENTS,
             ),
-        {
-            onSuccess: (response) => {
-                if (typeof window !== "undefined") {
-                    try {
-                        const eventSource = new EventSource(
-                            `${
-                                ResourceURL.CLIENT_NOTIFICATION_EVENTS
-                            }?eventSourceUuid=${
-                                (response as EventInitiationResponse)
-                                    .eventSourceUuid
-                            }`,
-                        );
+        refetchOnWindowFocus: false,
+        enabled: !!user && typeof window !== "undefined",
+    });
 
-                        eventSource.onopen = () =>
-                            MiscUtils.console.log(
-                                "Opening EventSource of Notifications...",
-                            );
+    useEffect(() => {
+        if (!data || typeof window === "undefined") return;
 
-                        eventSource.onerror = () =>
-                            MiscUtils.console.error(
-                                "Encountered error with Notifications EventSource!",
-                            );
+        try {
+            const response = data as EventInitiationResponse;
+            const eventSource = new EventSource(
+                `${ResourceURL.CLIENT_NOTIFICATION_EVENTS}?eventSourceUuid=${response.eventSourceUuid}`,
+            );
 
-                        eventSource.onmessage = (event) => {
-                            const notificationResponse = JSON.parse(
-                                event.data,
-                            ) as NotificationResponse;
-                            pushNewNotification(notificationResponse);
-                        };
+            eventSource.onopen = () =>
+                MiscUtils.console.log(
+                    "Opening EventSource of Notifications...",
+                );
 
-                        eventSourceRef.current = eventSource;
-                    } catch (error) {
-                        console.error(
-                            "Failed to initialize EventSource:",
-                            error,
-                        );
-                    }
-                }
-            },
-            onError: () =>
-                NotifyUtils.simpleFailed("Lấy dữ liệu không thành công"),
-            refetchOnWindowFocus: false,
-            keepPreviousData: true,
-            enabled: !!user && typeof window !== "undefined",
-        },
-    );
+            eventSource.onerror = () =>
+                MiscUtils.console.error(
+                    "Encountered error with Notifications EventSource!",
+                );
+
+            eventSource.onmessage = (event) => {
+                const notificationResponse = JSON.parse(
+                    event.data,
+                ) as NotificationResponse;
+                pushNewNotification(notificationResponse);
+            };
+
+            eventSourceRef.current = eventSource;
+
+            return () => {
+                eventSource.close();
+            };
+        } catch (error) {
+            console.error("Failed to initialize EventSource:", error);
+            NotifyUtils.simpleFailed("Lấy dữ liệu không thành công");
+        }
+    }, [data, pushNewNotification]);
 
     useEffect(() => {
         return () => {

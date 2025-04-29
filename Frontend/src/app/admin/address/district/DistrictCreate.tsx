@@ -9,33 +9,23 @@ import {
     Stack,
     TextInput,
 } from "@mantine/core";
-import { useParams } from "next/navigation";
 import DistrictConfigs from "./DistrictConfigs";
-import useDistrictUpdateViewModel from "./DistrictUpdate.vm";
+import useDistrictCreateViewModel from "./DistrictCreate.vm";
+import CreateUpdateTitle from "@/components/CreateUpdateTitle";
+import DefaultPropertyPanel from "@/components/DefaultPropertyPanel";
 
-function DistrictUpdate() {
-    const { id } = useParams();
-    const { district, form, handleFormSubmit, provinceSelectList } =
-        useDistrictUpdateViewModel(Number(id));
-
-    if (!district) {
-        return null;
-    }
+function DistrictCreate() {
+    const { form, handleFormSubmit, provinceSelectList } =
+        useDistrictCreateViewModel();
 
     return (
         <Stack sx={{ maxWidth: 800 }}>
             <CreateUpdateTitle
                 managerPath={DistrictConfigs.managerPath}
-                title={DistrictConfigs.updateTitle}
+                title={DistrictConfigs.createTitle}
             />
 
-            <DefaultPropertyPanel
-                id={district.id}
-                createdAt={district.createdAt}
-                updatedAt={district.updatedAt}
-                createdBy="1"
-                updatedBy="1"
-            />
+            <DefaultPropertyPanel />
 
             <form onSubmit={handleFormSubmit}>
                 <Paper shadow="xs">
@@ -80,7 +70,7 @@ function DistrictUpdate() {
                             <Button variant="default" onClick={form.reset}>
                                 Mặc định
                             </Button>
-                            <Button type="submit">Cập nhật</Button>
+                            <Button type="submit">Thêm</Button>
                         </Group>
                     </Stack>
                 </Paper>
@@ -89,4 +79,4 @@ function DistrictUpdate() {
     );
 }
 
-export default DistrictUpdate;
+export default DistrictCreate;

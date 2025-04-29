@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import {
     Button,
@@ -5,34 +6,36 @@ import {
     Grid,
     Group,
     Paper,
+    Select,
     Stack,
     TextInput,
 } from "@mantine/core";
+import CreateUpdateTitle from "@/components/CreateUpdateTitle";
+import DefaultPropertyPanel from "@/components/DefaultPropertyPanel";
 import { useParams } from "next/navigation";
-import ProvinceConfigs from "./ProvinceConfigs";
-import useProvinceUpdateViewModel from "./ProvinceUpdate.vm";
+import RoleConfigs from "./RoleConfigs";
+import useRoleUpdateViewModel from "./RoleUpdate.vm";
 
-function ProvinceUpdate() {
+function RoleUpdate() {
     const { id } = useParams();
-    const { province, form, handleFormSubmit } = useProvinceUpdateViewModel(
-        Number(id),
-    );
+    const { role, form, handleFormSubmit, statusSelectList } =
+        useRoleUpdateViewModel(Number(id));
 
-    if (!province) {
+    if (!role) {
         return null;
     }
 
     return (
         <Stack sx={{ maxWidth: 800 }}>
             <CreateUpdateTitle
-                managerPath={ProvinceConfigs.managerPath}
-                title={ProvinceConfigs.updateTitle}
+                managerPath={RoleConfigs.managerPath}
+                title={RoleConfigs.updateTitle}
             />
 
             <DefaultPropertyPanel
-                id={province.id}
-                createdAt={province.createdAt}
-                updatedAt={province.updatedAt}
+                id={role.id}
+                createdAt={role.createdAt}
+                updatedAt={role.updatedAt}
                 createdBy="1"
                 updatedBy="1"
             />
@@ -44,19 +47,24 @@ function ProvinceUpdate() {
                             <Grid.Col xs={6}>
                                 <TextInput
                                     required
-                                    label={
-                                        ProvinceConfigs.properties.name.label
-                                    }
-                                    {...form.getInputProps("name")}
+                                    label={RoleConfigs.properties.code.label}
+                                    {...form.getInputProps("code")}
                                 />
                             </Grid.Col>
                             <Grid.Col xs={6}>
                                 <TextInput
                                     required
-                                    label={
-                                        ProvinceConfigs.properties.code.label
-                                    }
-                                    {...form.getInputProps("code")}
+                                    label={RoleConfigs.properties.name.label}
+                                    {...form.getInputProps("name")}
+                                />
+                            </Grid.Col>
+                            <Grid.Col xs={6}>
+                                <Select
+                                    required
+                                    label={RoleConfigs.properties.status.label}
+                                    placeholder="--"
+                                    data={statusSelectList}
+                                    {...form.getInputProps("status")}
                                 />
                             </Grid.Col>
                         </Grid>
@@ -76,4 +84,4 @@ function ProvinceUpdate() {
     );
 }
 
-export default ProvinceUpdate;
+export default RoleUpdate;
